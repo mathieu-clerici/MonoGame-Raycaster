@@ -37,8 +37,6 @@ namespace Raycast.Engine
 
 		public IEnumerable<CastedRay> RenderWalls(Player player, Level level)
 		{
-			var pixelNumber = 0;
-
 			var screenDistance = ScreenDistance;
 
 			var pointScreenLeft = new Vector2(player.Location.X - ScreenDistance.X / 2, 
@@ -84,7 +82,7 @@ namespace Raycast.Engine
 				directionVector.Normalize();
 
 				var ray = Caster.CastRayForPixel(currentPixel, player.Location, 
-					Vector2.Multiply(directionVector, 0.05f), Vector2.Zero, angle);
+					Vector2.Multiply(directionVector, 0.05f), directionVector, angle);
 
 				ray.Distance = CorrectFishEyeEffect(angle, ray.TranslateVector);
 				currentPixel += incOrdec;

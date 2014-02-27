@@ -22,11 +22,11 @@ namespace Raycast.Engine
 			var currentLocation = Vector2.Add(startPoint, translateVector);
 			int x = (int)Math.Round(currentLocation.X);
 			int y = (int)Math.Round(currentLocation.Y);
-			var distance = Vector2.Subtract(currentLocation, startPoint);
 
 			if (Map[y][x] == ' ') 
 			{
-				var newTranslate = Vector2.Add(translateVector, directionVector);
+				var test = PerformDDA(currentLocation, directionVector);
+				var newTranslate = Vector2.Add(translateVector, test);
 				return CastRayForPixel(pixelNumber, startPoint, directionVector, newTranslate, angle);
 			}
 			else
@@ -39,6 +39,28 @@ namespace Raycast.Engine
 				ray.TranslateVector = translateVector;
 				return ray;
 			}
+		}
+
+		private Vector2 PerformDDA(Vector2 currentLocation, Vector2 direction)
+		{
+			int x = (int)Math.Round(currentLocation.X);
+			int y = (int)Math.Round(currentLocation.Y);
+
+			var newX = direction.X > 0 ? x + 1f : x - 1f;
+			//float deltaX = currentLocation.X - newX;
+			//newX = currentLocation.X - deltaX;
+			var resultingY = newX *  currentLocation.Y / currentLocation.X;
+			var resultingXLocation = new Vector2(newX, resultingY);
+			var distanceX = Vector2.Subtract(resultingXLocation, currentLocation);
+
+			var newY = direction.Y > 0 ? y + 1f : y - 1f;
+			//float deltaY = currentLocation.Y - newY;
+			//newY = currentLocation.Y - deltaY;
+			var resultingX = newY *  currentLocation.X / currentLocation.Y;
+			var resultingYLocation = new Vector2(resultingX, newY);
+			var distanceY = Vector2.Subtract(resultingYLocation, currentLocation);
+
+			return direction;
 		}
 	}
 }
