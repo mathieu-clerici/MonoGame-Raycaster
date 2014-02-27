@@ -1,0 +1,12 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+*.suo
+*.userprefs
+/Raycast.Engine/bin/Debug
+/Raycast.Engine/obj/Debug
+/Raycast.Windows/bin/Windows/Debug
+*.db
+/Raycast.Windows/obj/x86/Debug
+*.DS_Store
