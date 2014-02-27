@@ -60,7 +60,7 @@
   <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\Raycast.Engine\Raycast.Engine.csproj">
-      <Project>{af7ab6ea-f88c-44df-bc9b-d98d0cfc08c8}</Project>
+      <Project>{AF7AB6EA-F88C-44DF-BC9B-D98D0CFC08C8}</Project>
       <Name>Raycast.Engine</Name>
     </ProjectReference>
   </ItemGroup>

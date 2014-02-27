@@ -12,12 +12,15 @@ namespace Raycast.Engine
         protected float FOV { get; set; }
         protected int Width { get; set; }
         protected int Height { get; set; }
+		protected char[][] Map { get; set; }
+		protected Caster Caster { get; set; }
 
-        public Renderer(int width, int height, float fov)
+		public Renderer(int width, int height, float fov, char[][] map)
         {
             FOV = fov;
             Width = width;
             Height = height;
+			Caster = new Caster (map);
         }
 
 		private Vector2 ScreenDistance
@@ -32,9 +35,10 @@ namespace Raycast.Engine
 			}
 		}
 
-		public IEnumerable<Wall> RenderWalls(Player player, Level level)
+		public IEnumerable<CastedRay> RenderWalls(Player player, Level level)
 		{
-			var originalDirection = Vector2.Zero;
+			var pixelNumber = 0;
+
 			var screenDistance = ScreenDistance;
 
 			var pointScreenLeft = new Vector2(player.Location.X - ScreenDistance.X / 2, 
@@ -43,17 +47,34 @@ namespace Raycast.Engine
 			var pointScreenRight = new Vector2(player.Location.X + ScreenDistance.X / 2, 
 				(float)Math.Round(player.Location.Y - ScreenDistance.Y, 1));
 
+			var pointScreenMiddle = new Vector2(player.Location.X, 
+				(float)Math.Round(player.Location.Y - ScreenDistance.Y, 1));
+				
 			pointScreenLeft = pointScreenLeft.Rotate(MathHelper.ToRadians(player.Angle), player.Location);
 			pointScreenRight = pointScreenRight.Rotate(MathHelper.ToRadians(player.Angle), player.Location);
+			pointScreenMiddle = pointScreenMiddle.Rotate(MathHelper.ToRadians(player.Angle), player.Location);
 
+			var originalDirection = Vector2.Zero;
 			var screenVector = Vector2.Subtract(pointScreenRight, pointScreenLeft).Round(1);
 			screenVector.Normalize();
 			screenVector = Vector2.Multiply(screenVector, 0.001f);
 
-			for (int i = 0; i < Width; i++) 
+			var half1 = DrawHalf(player, 0, 1, pointScreenMiddle, pointScreenLeft);
+			var half2 = DrawHalf(player, Width, -1, pointScreenMiddle, pointScreenRight);
+			return half1.Concat(half2);
+		}
+
+		private IEnumerable<CastedRay> DrawHalf(Player player, int currentPixel, int incOrdec, Vector2 middlePoint, Vector2 otherPoint)
+		{
+			var originalDirection = Vector2.Zero;
+			var screenVector = Vector2.Subtract(middlePoint, otherPoint).Round(1);
+			screenVector.Normalize();
+			screenVector = Vector2.Multiply(screenVector, 0.001f);
+
+			for (int i = 0; i <= Width / 2; i++) 
 			{
 				var translateOnScreenVector = Vector2.Multiply(screenVector, 1 + i);
-				var point = Vector2.Add(pointScreenLeft, translateOnScreenVector);
+				var point = Vector2.Add(otherPoint, translateOnScreenVector);
 
 				var directionVector = Vector2.Subtract(point, player.Location);
 
@@ -64,50 +85,19 @@ namespace Raycast.Engine
 					originalDirection = directionVector;
 				}
 
-				var angle = pointScreenLeft.AngleForPoints(player.Location, point);
+				var angle = otherPoint.AngleForPoints(player.Location, point);
 				directionVector.Normalize();
 
-				yield return CastRay(level.Map, player.Location, 
+				var ray = Caster.CastRayForPixel(currentPixel, player.Location, 
 					Vector2.Multiply(directionVector, 0.05f), directionVector, angle);
+
+				ray.Distance = CorrectFishEyeEffect(angle, ray.TranslateVector);
+				currentPixel += incOrdec;
+				yield return ray;
 			}
 		}
 
-		private Wall CastRay(char[][] map, Vector2 startPoint, Vector2 directionVector, Vector2 translateVector, float angle)
-		{
-			var currentLocation = Vector2.Add(startPoint, translateVector);
-			int x = (int)Math.Round(currentLocation.X);
-			int y = (int)Math.Round(currentLocation.Y);
-
-			var distance = Vector2.Subtract(currentLocation, startPoint);
-			var diffX = Math.Abs(currentLocation.X - x);
-			var diffY = Math.Abs(currentLocation.Y - y);
-
-			if (map[y][x] == ' ' || map[y][x] == 'Z') 
-			{
-				var newTranslate = Vector2.Add(translateVector, directionVector);
-				return CastRay(map, startPoint, directionVector, newTranslate, angle);
-			}
-			else
-			{
-				var wall = new Wall();
-				if (diffX < diffY) 
-				{
-					var realX = (int)(currentLocation.X * 64);
-					wall.WallOffset = realX % 64;
-				} 
-				else if (diffX > diffY) 
-				{
-					var realY = (int)(currentLocation.Y * 64);
-					wall.WallOffset = realY % 64;
-				}
-					
-				wall.Location = new Vector2(y, x);
-				wall.Distance = CorrectFishEyeEffect(angle, distance);
-				return wall;
-			}
-		}
-
-		private float CorrectFishEyeEffect(float angle, Vector2 distance)
+		protected float CorrectFishEyeEffect(float angle, Vector2 distance)
 		{
 			angle = (float)Math.Round(angle, 0);
 

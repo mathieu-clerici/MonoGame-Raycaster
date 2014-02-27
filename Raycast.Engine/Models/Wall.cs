@@ -9,6 +9,7 @@ namespace Raycast.Engine.Models
 		public float Distance { get; set; }
 		public Vector2 Location { get; set; }
 		public int WallOffset { get; set; }
+		public int PixelNumber { get; set; }
 
 		public Wall()
 		{

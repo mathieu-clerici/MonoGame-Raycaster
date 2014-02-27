@@ -41,7 +41,7 @@ namespace Raycast.Engine.Extensions
 
 			var	cosB = Math.Pow (ac, 2) - Math.Pow (ab, 2) - Math.Pow (bc, 2);
 			cosB = cosB / (2 * ab * bc);
-			return (float)(180 - (Math.Acos(cosB) * 180 / Math.PI));
+			return (float)(180 - MathHelper.ToDegrees((float)Math.Acos(cosB)));
 		}
 
 		public static Vector2 Round(this Vector2 vector, int precision)
