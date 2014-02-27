@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
+using Raycast.Engine.Extensions;
 
 namespace Raycast.Engine.Models
 {
@@ -24,6 +25,22 @@ namespace Raycast.Engine.Models
 
 		public float Angle { get; set; }
 		public float AngleAcceleration { get; set; }
+
+		public void Update()
+		{
+			Acceleration = Vector2.Add(Acceleration, Velocity);
+
+			if (Acceleration.Y != 0f) {
+				var futureLocation = Vector2.Add(Acceleration, Location);
+				futureLocation = futureLocation.Rotate(MathHelper.ToRadians(Angle), Location);
+				Acceleration = Vector2.Subtract(futureLocation, Location);
+			}
+
+			Location = Vector2.Add(Location, Acceleration);
+			Angle = Angle + AngleAcceleration;
+			Acceleration = Vector2.Zero;
+			AngleAcceleration = 0f;
+		}
 	}
 }
 

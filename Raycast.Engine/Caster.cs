@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Raycast.Engine.Extensions;
 using Raycast.Engine.Models;
+
 namespace Raycast.Engine
 {
 	public class Caster

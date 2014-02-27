@@ -89,7 +89,7 @@ namespace Raycast.Mac
         {
 			base.Update(gameTime);
 			TreatInputs();
-			UpdatePlayer();
+			player.Update();
 			distances = Renderer.RenderWalls(player, levelTest)
 				.Where(w => w != null)
 				.ToArray();
@@ -158,15 +158,6 @@ namespace Raycast.Mac
 
 			if (currentKeyboardState.IsKeyDown(Keys.Down))
 				player.Acceleration = new Vector2(0f, 0.1f);
-		}
-
-		private void UpdatePlayer()
-		{
-			var newDistance = Vector2.Add(player.Acceleration, player.Velocity);
-			player.Location = Vector2.Add(player.Location, newDistance);
-			player.Angle = player.Angle + player.AngleAcceleration;
-			player.Acceleration = Vector2.Zero;
-			player.AngleAcceleration = 0f;
 		}
 
     }
