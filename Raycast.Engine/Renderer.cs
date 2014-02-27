@@ -54,11 +54,6 @@ namespace Raycast.Engine
 			pointScreenRight = pointScreenRight.Rotate(MathHelper.ToRadians(player.Angle), player.Location);
 			pointScreenMiddle = pointScreenMiddle.Rotate(MathHelper.ToRadians(player.Angle), player.Location);
 
-			var originalDirection = Vector2.Zero;
-			var screenVector = Vector2.Subtract(pointScreenRight, pointScreenLeft).Round(1);
-			screenVector.Normalize();
-			screenVector = Vector2.Multiply(screenVector, 0.001f);
-
 			var half1 = DrawHalf(player, 0, 1, pointScreenMiddle, pointScreenLeft);
 			var half2 = DrawHalf(player, Width, -1, pointScreenMiddle, pointScreenRight);
 			return half1.Concat(half2);
@@ -89,7 +84,7 @@ namespace Raycast.Engine
 				directionVector.Normalize();
 
 				var ray = Caster.CastRayForPixel(currentPixel, player.Location, 
-					Vector2.Multiply(directionVector, 0.05f), directionVector, angle);
+					Vector2.Multiply(directionVector, 0.05f), Vector2.Zero, angle);
 
 				ray.Distance = CorrectFishEyeEffect(angle, ray.TranslateVector);
 				currentPixel += incOrdec;
@@ -100,15 +95,9 @@ namespace Raycast.Engine
 		protected float CorrectFishEyeEffect(float angle, Vector2 distance)
 		{
 			angle = (float)Math.Round(angle, 0);
-
+			angle = angle - FOV / 2;
 			var d = distance.Magnitude();
-
-			if (angle < FOV / 2) { angle = FOV / 2 - angle; } 
-			else if (angle > FOV / 2)  { angle = angle - FOV / 2; } 
-			else { return distance.Magnitude(); }
-
-			var result = (float) (Math.Cos(MathHelper.ToRadians(angle)) * d);
-			return result;
+			return(float) (Math.Cos(MathHelper.ToRadians(angle)) * d);
 		}
 	}
 }
