@@ -10,3 +10,7 @@
 *.db
 /Raycast.Windows/obj/x86/Debug
 *.DS_Store
+/Raycast.Engine/obj/Release
+/Raycast.Windows/bin/Windows/Release
+*.htm
+/Raycast.Windows/obj/x86/Release
