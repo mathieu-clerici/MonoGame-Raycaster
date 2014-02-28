@@ -10,6 +10,7 @@ using Microsoft.Xna.Framework.Storage;
 using Microsoft.Xna.Framework.GamerServices;
 using Raycast.Engine.Models;
 using Raycast.Engine;
+using System.Threading.Tasks;
 #endregion
 
 namespace Raycast.Windows
@@ -23,14 +24,14 @@ namespace Raycast.Windows
         public static int SCREEN_HEIGHT = 600;
         public static int TEXTURE_SIZE = 64;
 
+        Task<IEnumerable<CastedRay>> UpdateTask;
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
         private Renderer Renderer;
         private Player player;
         private LevelTest levelTest;
-        private Wall[] distances;
-
+        private CastedRay[] distances;
 
         private KeyboardState currentKeyboardState;
         private KeyboardState oldKeyboardState;
@@ -47,7 +48,6 @@ namespace Raycast.Windows
             graphics.IsFullScreen = false;
             graphics.PreferredBackBufferWidth = SCREEN_WIDTH;
             graphics.PreferredBackBufferHeight = SCREEN_HEIGHT;
-            Renderer = new Renderer(SCREEN_WIDTH, SCREEN_HEIGHT, 66);
         }
 
         protected override void Initialize()
@@ -62,15 +62,16 @@ namespace Raycast.Windows
                 for (int j = 0; j < levelTest.Map[i].Length; ++j)
                 {
                     if (levelTest.Map[j][i] == 'Z')
+                    {
                         player.Location = new Vector2(i, j);
+                        levelTest.Map[j][i] = ' ';
+                    }
                 }
             }
+
+            Renderer = new Renderer(SCREEN_WIDTH, SCREEN_HEIGHT, 66, levelTest.Map);
         }
 
-        /// <summary>
-        /// LoadContent will be called once per game and is the place to load
-        /// all of your content.
-        /// </summary>
         protected override void LoadContent()
         {
             var graphicDevice = graphics.GraphicsDevice;
@@ -84,33 +85,21 @@ namespace Raycast.Windows
             floorTexture = new Texture2D(graphicDevice, 1, 1, false, SurfaceFormat.Color);
             floorTexture.SetData<Color>(new Color[] { Color.DarkGray });
 
-
             wallTexture = Content.Load<Texture2D>("redbrick");
         }
 
-        /// <summary>
-        /// UnloadContent will be called once per game and is the place to unload
-        /// all content.
-        /// </summary>
         protected override void UnloadContent()
         {
             // TODO: Unload any non ContentManager content here
         }
 
-        /// <summary>
-        /// Allows the game to run logic such as updating the world,
-        /// checking for collisions, gathering input, and playing audio.
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values.</param>
-        protected override void Update(GameTime gameTime)
+        protected override async void Update(GameTime gameTime)
         {
             base.Update(gameTime);
             TreatInputs();
-            UpdatePlayer();
-            distances = Renderer.RenderWalls(player, levelTest)
-                .Where(w => w != null)
-                .ToArray();
-
+            player.Update();
+            var tmp = await Renderer.RenderWalls(player, levelTest);
+            distances = tmp.ToArray();
         }
 
         private void TreatInputs()
@@ -134,19 +123,6 @@ namespace Raycast.Windows
                 player.Acceleration = new Vector2(0f, 0.1f);
         }
 
-        private void UpdatePlayer()
-        {
-            var newDistance = Vector2.Add(player.Acceleration, player.Velocity);
-            player.Location = Vector2.Add(player.Location, newDistance);
-            player.Angle = player.Angle + player.AngleAcceleration;
-            player.Acceleration = Vector2.Zero;
-            player.AngleAcceleration = 0f;
-        }
-
-        /// <summary>
-        /// This is called when the game should draw itself. 
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
             graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
@@ -161,22 +137,24 @@ namespace Raycast.Windows
 
         private void DrawSkyBox()
         {
-            spriteBatch.Draw(skyTexture, new Rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT / 2), Color.White);
-            spriteBatch.Draw(floorTexture, new Rectangle(0, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT / 2), Color.White);
+            spriteBatch.Draw(skyTexture, 
+                new Rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT / 2), 
+                Color.White);
+
+            spriteBatch.Draw(floorTexture, 
+                new Rectangle(0, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT / 2), 
+                Color.White);
         }
 
         private void DrawWalls()
         {
-            var dCount = distances.Count();
-            for (int i = 0; i < dCount; i++)
+            foreach (var wall in distances)
             {
-                var wall = distances[i];
                 var y = (SCREEN_HEIGHT / wall.Distance);
                 var yCenter = y / 2;
                 var screenCenteredTop = SCREEN_HEIGHT / 2 - yCenter;
-                //var screenCenteredBottom = SCREEN_HEIGHT / 2 + yCenter;
-                var sourceRect = new Rectangle(wall.WallOffset, 0, 1, TEXTURE_SIZE);
-                var destRect = new Rectangle(i, (int)screenCenteredTop, 1, (int)y);
+                var sourceRect = new Rectangle(wall.TextureOffsetX, 0, 1, TEXTURE_SIZE);
+                var destRect = new Rectangle(wall.PixelOnScreen, (int)screenCenteredTop, 1, (int)y);
                 spriteBatch.Draw(wallTexture, destRect, sourceRect, Color.White);
             }
         }

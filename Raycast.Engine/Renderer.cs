@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Raycast.Engine.Extensions;
 using Raycast.Engine.Models;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Raycast.Engine
 {
@@ -35,7 +37,7 @@ namespace Raycast.Engine
 			}
 		}
 
-		public IEnumerable<CastedRay> RenderWalls(Player player, Level level)
+		public async Task<IEnumerable<CastedRay>> RenderWalls(Player player, Level level)
 		{
 			var screenDistance = ScreenDistance;
 
@@ -52,42 +54,47 @@ namespace Raycast.Engine
 			pointScreenRight = pointScreenRight.Rotate(MathHelper.ToRadians(player.Angle), player.Location);
 			pointScreenMiddle = pointScreenMiddle.Rotate(MathHelper.ToRadians(player.Angle), player.Location);
 
-			var half1 = DrawHalf(player, 0, 1, pointScreenMiddle, pointScreenLeft);
-			var half2 = DrawHalf(player, Width, -1, pointScreenMiddle, pointScreenRight);
-			return half1.Concat(half2);
+            var half1 =  await DrawHalfAsyncTask(player, 0, 1, pointScreenMiddle, pointScreenLeft);
+            var half2 =  await DrawHalfAsyncTask(player, Width, -1, pointScreenMiddle, pointScreenRight);
+
+            return half1.Concat(half2);
 		}
 
-		private IEnumerable<CastedRay> DrawHalf(Player player, int currentPixel, int incOrdec, Vector2 middlePoint, Vector2 otherPoint)
+		protected async Task<IEnumerable<CastedRay>> DrawHalfAsyncTask(Player player, int currentPixel, 
+            int incOrdec, Vector2 middlePoint, Vector2 otherPoint)
 		{
-			var originalDirection = Vector2.Zero;
-			var screenVector = Vector2.Subtract(middlePoint, otherPoint).Round(1);
-			screenVector.Normalize();
-			screenVector = Vector2.Multiply(screenVector, 0.001f);
+            var castedRays = new List<CastedRay>();
+            var originalDirection = Vector2.Zero;
+            var screenVector = Vector2.Subtract(middlePoint, otherPoint).Round(1);
+            screenVector.Normalize();
+            screenVector = Vector2.Multiply(screenVector, 0.001f);
 
-			for (int i = 0; i <= Width / 2; i++) 
-			{
-				var translateOnScreenVector = Vector2.Multiply(screenVector, 1 + i);
-				var point = Vector2.Add(otherPoint, translateOnScreenVector);
+            for (int i = 0; i <= Width / 2; i++)
+            {
+                var translateOnScreenVector = Vector2.Multiply(screenVector, 1 + i);
+                var point = Vector2.Add(otherPoint, translateOnScreenVector);
 
-				var directionVector = Vector2.Subtract(point, player.Location);
+                var directionVector = Vector2.Subtract(point, player.Location);
 
-				var originalStep = new Vector2(directionVector.X, directionVector.Y);
-				originalStep.Normalize();
+                var originalStep = new Vector2(directionVector.X, directionVector.Y);
+                originalStep.Normalize();
 
-				if (originalDirection == Vector2.Zero) {
-					originalDirection = directionVector;
-				}
+                if (originalDirection == Vector2.Zero)
+                {
+                    originalDirection = directionVector;
+                }
 
-				var angle = otherPoint.AngleForPoints(player.Location, point);
-				directionVector.Normalize();
+                var angle = otherPoint.AngleForPoints(player.Location, point);
+                directionVector.Normalize();
 
-				var ray = Caster.CastRayForPixel(currentPixel, player.Location, 
+                var ray = Caster.CastRayForPixel(currentPixel, player.Location,
 					Vector2.Multiply(directionVector, 0.1f), Vector2.Zero, angle, 1f);
 
-				ray.Distance = CorrectFishEyeEffect(angle, ray.TranslateVector);
-				currentPixel += incOrdec;
-				yield return ray;
-			}
+                ray.Distance = CorrectFishEyeEffect(angle, ray.TranslateVector);
+                currentPixel += incOrdec;
+                castedRays.Add(ray);
+            }
+            return castedRays;
 		}
 
 		protected float CorrectFishEyeEffect(float angle, Vector2 distance)
