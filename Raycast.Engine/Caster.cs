@@ -17,12 +17,12 @@ namespace Raycast.Engine
 		}
 
 		public CastedRay CastRayForPixel(int pixelNumber, Vector2 startPoint, 
-			Vector2 directionVector, Vector2 translateVector, float angle, int count)
+			Vector2 directionVector, Vector2 translateVector, float angle, float count)
 		{
 			var currentLocation = Vector2.Add(startPoint, translateVector);
 			int x = (int)Math.Round(currentLocation.X);
 			int y = (int)Math.Round(currentLocation.Y);
-			count++;
+			count+= 0.5f;
 
 			if (Map[y][x] == ' ') 
 			{

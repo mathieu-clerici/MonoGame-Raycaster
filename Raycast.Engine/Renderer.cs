@@ -82,7 +82,7 @@ namespace Raycast.Engine
 				directionVector.Normalize();
 
 				var ray = Caster.CastRayForPixel(currentPixel, player.Location, 
-					Vector2.Multiply(directionVector, 0.03f), Vector2.Zero, angle, 1);
+					Vector2.Multiply(directionVector, 0.1f), Vector2.Zero, angle, 1f);
 
 				ray.Distance = CorrectFishEyeEffect(angle, ray.TranslateVector);
 				currentPixel += incOrdec;
