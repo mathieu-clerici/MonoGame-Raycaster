@@ -22,7 +22,7 @@ namespace Raycast.Engine
 			var currentLocation = Vector2.Add(startPoint, translateVector);
 			int x = (int)Math.Round(currentLocation.X);
 			int y = (int)Math.Round(currentLocation.Y);
-			count+= 0.5f;
+			count+= 0.3f;
 
 			if (Map[y][x] == ' ') 
 			{
@@ -40,6 +40,11 @@ namespace Raycast.Engine
 				return ray;
 			}
 		}
+
+		//public CastedRay CastRayForFloorPixel(Vector2 pixelLocation, Vector2 startPoint, 
+		//	Vector2 directionVector, Vector2 translateVector, float angle, float count)
+		//{
+		//}
 	}
 }
 

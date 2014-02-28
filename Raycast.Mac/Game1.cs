@@ -1,10 +1,12 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
 using Raycast.Engine;
 using Raycast.Engine.Models;
+using System.Threading.Tasks;
 
 namespace Raycast.Mac
 {
@@ -13,8 +15,8 @@ namespace Raycast.Mac
     /// </summary>
     public class Game1 : Game
     {
-		public static int SCREEN_WIDTH = 1024;
-		public static int SCREEN_HEIGHT = 768;
+		public static int SCREEN_WIDTH = 800;
+		public static int SCREEN_HEIGHT = 600;
 		public static int TEXTURE_SIZE = 64;
 
 		GraphicsDeviceManager graphics;
@@ -23,8 +25,7 @@ namespace Raycast.Mac
 		private Renderer Renderer;
 		private Player player;
 		private LevelTest levelTest;
-		private CastedRay[] distances;
-
+		private IEnumerable<CastedRay> distances;
 
 		private KeyboardState currentKeyboardState;
 		private KeyboardState oldKeyboardState;
@@ -85,14 +86,12 @@ namespace Raycast.Mac
         {
         }
 
-        protected override void Update(GameTime gameTime)
+		protected override void Update(GameTime gameTime)
         {
 			base.Update(gameTime);
 			TreatInputs();
 			player.Update();
-			distances = Renderer.RenderWalls(player, levelTest)
-				.Where(w => w != null)
-				.ToArray();
+			distances = Renderer.RenderWalls(player, levelTest);
         }
 			
         protected override void Draw(GameTime gameTime)
