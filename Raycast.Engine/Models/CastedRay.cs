@@ -26,7 +26,7 @@ namespace Raycast.Engine
 				TextureOffsetX = realX % 64;
                 IsHitInX = true;
 			} 
-			else if (diffX > diffY) 
+			else if (diffX >= diffY) 
 			{
 				var realY = (int)(HitLocation.Y * 64);
 				TextureOffsetX = realY % 64;

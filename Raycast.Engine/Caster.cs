@@ -10,10 +10,12 @@ namespace Raycast.Engine
 	public class Caster
 	{
 		protected char[][] Map { get; set; }
+		protected CastedRay[] Rays { get; set; }
 
 		public Caster (char[][] map)
 		{
 			Map = map;
+			Rays = new CastedRay[Constants.SCREEN_WIDTH + 1];
 		}
 
 		public CastedRay CastRayForPixel(int pixelNumber, Vector2 startPoint, 
@@ -22,7 +24,7 @@ namespace Raycast.Engine
 			var currentLocation = Vector2.Add(startPoint, translateVector);
 			int x = (int)Math.Round(currentLocation.X);
 			int y = (int)Math.Round(currentLocation.Y);
-			count+= 0.3f;
+			count+= 0.5f;
 
 			if (Map[y][x] == ' ') 
 			{
@@ -31,7 +33,11 @@ namespace Raycast.Engine
 			}
 			else
 			{
-				var ray = new CastedRay();
+				if (Rays [pixelNumber] == null) {
+					Rays[pixelNumber] = new CastedRay();
+				}
+
+				var ray = Rays[pixelNumber];
 				ray.PixelOnScreen = pixelNumber;
 				ray.HitLocation = currentLocation;
 				ray.CalculateTextureOffset(x, y);
@@ -40,11 +46,6 @@ namespace Raycast.Engine
 				return ray;
 			}
 		}
-
-		//public CastedRay CastRayForFloorPixel(Vector2 pixelLocation, Vector2 startPoint, 
-		//	Vector2 directionVector, Vector2 translateVector, float angle, float count)
-		//{
-		//}
 	}
 }
 
