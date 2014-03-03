@@ -12,6 +12,8 @@ namespace Raycast.Engine
 		public Vector2 StartPoint { get; set; }
 		public Vector2 TranslateVector { get; set; }
 
+        public bool IsHitInX { get; set; }
+
 		public CastedRay (){}
 		public void CalculateTextureOffset(int x, int y)
 		{
@@ -22,11 +24,13 @@ namespace Raycast.Engine
 			{
 				var realX = (int)(HitLocation.X * 64);
 				TextureOffsetX = realX % 64;
+                IsHitInX = true;
 			} 
 			else if (diffX > diffY) 
 			{
 				var realY = (int)(HitLocation.Y * 64);
 				TextureOffsetX = realY % 64;
+                IsHitInX = false;
 			}
 		}
 	}

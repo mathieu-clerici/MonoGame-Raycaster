@@ -96,7 +96,7 @@ namespace Raycast.Engine
 					var ray = Caster.CastRayForPixel (currentPixel, player.Location,
 						Vector2.Multiply (directionVector, 0.1f), Vector2.Zero, angle, 1f);
 
-					ray.Distance = CorrectFishEyeEffect (angle, ray.TranslateVector);
+					ray.Distance = CorrectFishEyeEffect(angle, ray);
 					currentPixel += incOrdec;
 					castedRays.Add (ray);
 				}
@@ -105,12 +105,18 @@ namespace Raycast.Engine
 			return Task.Factory.StartNew<IEnumerable<CastedRay>> (temp);
 		}
 
-		protected float CorrectFishEyeEffect(float angle, Vector2 distance)
+		protected float CorrectFishEyeEffect(float angle, CastedRay ray)
 		{
 			angle = angle - FOV / 2;
-			var d = distance.Magnitude();
+            var d = CorrectDistance(ray);
 			return(float) (Math.Cos(MathHelper.ToRadians(angle)) * d);
 		}
+
+        float CorrectDistance(CastedRay ray)
+        {
+            var d = ray.TranslateVector.Magnitude();
+            return d;
+        }
 	}
 }
 

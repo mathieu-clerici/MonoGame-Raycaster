@@ -1,17 +1,12 @@
-﻿#region Using Statements
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Storage;
-using Microsoft.Xna.Framework.GamerServices;
-using Raycast.Engine.Models;
+using Microsoft.Xna.Framework.Graphics;
 using Raycast.Engine;
+using Raycast.Engine.Models;
 using System.Threading.Tasks;
-#endregion
 
 namespace Raycast.Windows
 {
@@ -24,14 +19,13 @@ namespace Raycast.Windows
         public static int SCREEN_HEIGHT = 600;
         public static int TEXTURE_SIZE = 64;
 
-        Task<IEnumerable<CastedRay>> UpdateTask;
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
         private Renderer Renderer;
         private Player player;
         private LevelTest levelTest;
-        private CastedRay[] distances;
+        private IEnumerable<CastedRay> distances;
 
         private KeyboardState currentKeyboardState;
         private KeyboardState oldKeyboardState;
@@ -41,7 +35,6 @@ namespace Raycast.Windows
         private Texture2D wallTexture;
 
         public Game1()
-            : base()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
@@ -79,71 +72,33 @@ namespace Raycast.Windows
 
             spriteBatch = new SpriteBatch(graphicDevice);
 
-            skyTexture = new Texture2D(graphicDevice, 1, 1, false, SurfaceFormat.Color);
-            skyTexture.SetData<Color>(new Color[] { Color.LightBlue });
-
-            floorTexture = new Texture2D(graphicDevice, 1, 1, false, SurfaceFormat.Color);
-            floorTexture.SetData<Color>(new Color[] { Color.DarkGray });
-
+            skyTexture = Content.Load<Texture2D>("wood");
+            floorTexture = Content.Load<Texture2D>("greystone");
             wallTexture = Content.Load<Texture2D>("redbrick");
         }
 
         protected override void UnloadContent()
         {
-            // TODO: Unload any non ContentManager content here
         }
 
-        protected override async void Update(GameTime gameTime)
+        protected override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
             TreatInputs();
             player.Update();
-            var tmp = await Renderer.RenderWalls(player, levelTest);
-            distances = tmp.ToArray();
-        }
-
-        private void TreatInputs()
-        {
-            oldKeyboardState = currentKeyboardState;
-            currentKeyboardState = Keyboard.GetState();
-
-            if (currentKeyboardState.IsKeyDown(Keys.Escape))
-                Exit();
-
-            if (currentKeyboardState.IsKeyDown(Keys.Left))
-                player.AngleAcceleration = MathHelper.ToRadians(-33f);
-
-            if (currentKeyboardState.IsKeyDown(Keys.Right))
-                player.AngleAcceleration = MathHelper.ToRadians(33f);
-
-            if (currentKeyboardState.IsKeyDown(Keys.Up))
-                player.Acceleration = new Vector2(0, -0.1f);
-
-            if (currentKeyboardState.IsKeyDown(Keys.Down))
-                player.Acceleration = new Vector2(0f, 0.1f);
+            distances = Renderer.RenderWalls(player, levelTest);
         }
 
         protected override void Draw(GameTime gameTime)
         {
+
             graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
 
             spriteBatch.Begin();
-            DrawSkyBox();
             DrawWalls();
             spriteBatch.End();
 
             base.Draw(gameTime);
-        }
-
-        private void DrawSkyBox()
-        {
-            spriteBatch.Draw(skyTexture, 
-                new Rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT / 2), 
-                Color.White);
-
-            spriteBatch.Draw(floorTexture, 
-                new Rectangle(0, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT / 2), 
-                Color.White);
         }
 
         private void DrawWalls()
@@ -153,9 +108,33 @@ namespace Raycast.Windows
                 var y = (SCREEN_HEIGHT / wall.Distance);
                 var yCenter = y / 2;
                 var screenCenteredTop = SCREEN_HEIGHT / 2 - yCenter;
+                var screenCenteredBottom = SCREEN_HEIGHT / 2 + yCenter;
                 var sourceRect = new Rectangle(wall.TextureOffsetX, 0, 1, TEXTURE_SIZE);
                 var destRect = new Rectangle(wall.PixelOnScreen, (int)screenCenteredTop, 1, (int)y);
                 spriteBatch.Draw(wallTexture, destRect, sourceRect, Color.White);
+
+                //FLOOR casting
+                var wallDistance = wall.Distance;
+                var floorLocation = Vector2.Zero;
+                floorLocation = new Vector2((float)wall.HitLocation.X, (float)wall.HitLocation.Y);
+    
+                for (int i = (int)screenCenteredBottom; i <= SCREEN_HEIGHT; i++)
+                {
+                    var currentDistance = SCREEN_HEIGHT / (2.0 * i - SCREEN_HEIGHT);
+                    var weight = currentDistance / wallDistance;
+
+                    var currentFloorX = weight * floorLocation.X + (1.0 - weight) * player.Location.X;
+                    var currentFloorY = weight * floorLocation.Y + (1.0 - weight) * player.Location.Y;
+                    var floorTexX = (int)(currentFloorX * TEXTURE_SIZE) % TEXTURE_SIZE;
+                    var floorTexY = (int)(currentFloorY * TEXTURE_SIZE) % TEXTURE_SIZE;
+
+                    var floorSource = new Rectangle(floorTexX, floorTexY, 1, 1);
+                    var floorDest = new Rectangle(wall.PixelOnScreen, i, 1, 1);
+                    var ceilingDest = new Rectangle(wall.PixelOnScreen, SCREEN_HEIGHT - i, 1, 1);
+
+                    spriteBatch.Draw(floorTexture, floorDest, floorSource, Color.White);
+                    spriteBatch.Draw(skyTexture, ceilingDest, floorSource, Color.White);
+                }
             }
         }
 
@@ -168,6 +147,27 @@ namespace Raycast.Windows
             batch.Draw(blank, point1, null, color,
                 angle, Vector2.Zero, new Vector2(length, width),
                 SpriteEffects.None, 0);
+        }
+
+        private void TreatInputs()
+        {
+            oldKeyboardState = currentKeyboardState;
+            currentKeyboardState = Keyboard.GetState();
+
+            if (currentKeyboardState.IsKeyDown(Keys.Escape))
+                Exit();
+
+            if (currentKeyboardState.IsKeyDown(Keys.Left))
+                player.AngleAcceleration = MathHelper.ToRadians(-30f);
+
+            if (currentKeyboardState.IsKeyDown(Keys.Right))
+                player.AngleAcceleration = MathHelper.ToRadians(30f);
+
+            if (currentKeyboardState.IsKeyDown(Keys.Up))
+                player.Acceleration = new Vector2(0, -0.1f);
+
+            if (currentKeyboardState.IsKeyDown(Keys.Down))
+                player.Acceleration = new Vector2(0f, 0.1f);
         }
 
     }
