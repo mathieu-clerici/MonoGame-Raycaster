@@ -60,7 +60,7 @@ namespace Raycast.Engine.Models
 			CeilingSprite = new Texture2D(gf, w, h);
 
 			floorTexture = content.Load<Texture2D>("wood");
-			ceilingTexture = content.Load<Texture2D>("colorstone");
+			ceilingTexture = content.Load<Texture2D>("ceiling");
 
 			floorColors = TextureTo2DArray(floorTexture);
 			ceilingColors = TextureTo2DArray (ceilingTexture);
@@ -84,8 +84,10 @@ namespace Raycast.Engine.Models
 		{
 			var currentDistance = DistanceLookupTable[Math.Abs(i - Constants.SCREEN_HEIGHT)];
 			var weight = currentDistance / wallDistance;
+
 			var currentFloorX = weight * floorLocationX + (1.0 - weight) * player.Location.X;
 			var currentFloorY = weight * floorLocationY + (1.0 - weight) * player.Location.Y;
+
 			var floorTexX = (int)(currentFloorX * Constants.TEXTURE_SIZE) % Constants.TEXTURE_SIZE;
 			var floorTexY = (int)(currentFloorY * Constants.TEXTURE_SIZE) % Constants.TEXTURE_SIZE;
 

@@ -76,14 +76,14 @@ namespace Raycast.Engine
 
 		private void AllocateAllPointScreen()
 		{
-			var sizeX = Map[0].Length * 10;
-			var sizeY = Map.Length * 10;
-			for (float i = 0f; i < sizeX; i += 0.1f) 
+			var sizeX = Map[0].Length;
+			var sizeY = Map.Length;
+			for (float i = 0f; i < sizeX; i += 0.01f) 
 			{
-				for (float j = 0f; j < sizeY; j += 0.1f) 
+				for (float j = 0f; j < sizeY; j += 0.01f) 
 				{
-					i = (float)Math.Round(i, 1);
-					j = (float)Math.Round(j, 1);
+					i = (float)Math.Round(i, 2);
+					j = (float)Math.Round(j, 2);
 					if (!PointsScreenLeft.ContainsKey(i)) 
 					{
 						PointsScreenLeft[i] = new Dictionary<float, Vector2>();

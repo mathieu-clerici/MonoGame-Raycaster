@@ -15,9 +15,10 @@ namespace Raycast.Engine
 
 		public Wall[] RenderWalls(Player player, Level level)
 		{
+			Wall.ClearWalls();
 			var screenDistance = ScreenDistance;
-			var playerX = (float)Math.Round(player.Location.X, 1);
-			var playerY = (float)Math.Round(player.Location.Y, 1);
+			var playerX = (float)Math.Round(player.Location.X, 2);
+			var playerY = (float)Math.Round(player.Location.Y, 2);
 
 			var pointScreenLeft = PointsScreenLeft[playerX][playerY];
 			var pointScreenRight = PointsScreenRight[playerX][playerY];

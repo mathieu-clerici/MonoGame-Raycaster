@@ -96,6 +96,7 @@
     <BundleResource Include="Content\redbrick.png" />
     <BundleResource Include="Content\colorstone.png" />
     <BundleResource Include="Content\wood.png" />
+    <BundleResource Include="Content\ceiling.png" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="../packages/MonoGame.3.0.1/build/net40/MonoGame.targets" Condition="Exists('../packages/MonoGame.3.0.1/build/net40/MonoGame.targets')" />

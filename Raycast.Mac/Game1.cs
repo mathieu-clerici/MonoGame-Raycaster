@@ -26,8 +26,6 @@ namespace Raycast.Mac
 		private KeyboardState currentKeyboardState;
 		private KeyboardState oldKeyboardState;
 
-		private Texture2D wallTexture;
-
         public Game1()
         {
 			graphics = new GraphicsDeviceManager(this);
@@ -61,8 +59,8 @@ namespace Raycast.Mac
         {
 			var graphicDevice = graphics.GraphicsDevice;
 			spriteBatch = new SpriteBatch(GraphicsDevice);
-			wallTexture = Content.Load<Texture2D>("redbrick");
 			Floor.CreateTexture(Content, graphicDevice, Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT / 2);
+			Wall.CreateTexture(Content, graphicDevice, Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
         }
 
 		protected override void Update(GameTime gameTime)
@@ -105,14 +103,14 @@ namespace Raycast.Mac
 
 		private void DrawScene()
 		{
+			Wall.Screen.SetData(Wall.wallSurfaceColors);
 			Floor.FloorSprite.SetData(Floor.floorSurfaceColors);
 			Floor.CeilingSprite.SetData(Floor.ceilingSurfaceColors);
+
+
 			spriteBatch.Draw(Floor.FloorSprite, new Vector2 (0, Constants.SCREEN_HEIGHT / 2), Color.White);
 			spriteBatch.Draw(Floor.CeilingSprite, new Vector2 (0, 0), Color.White);
-			foreach (var wall in distances) 
-			{
-				spriteBatch.Draw(wallTexture, wall.Dest, wall.Source, Color.White);
-			}
+			spriteBatch.Draw(Wall.Screen, new Vector2 (0, 0), Color.White);
 		}
 
 		void DrawLine(SpriteBatch batch, Texture2D blank,

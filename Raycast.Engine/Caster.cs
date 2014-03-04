@@ -16,6 +16,9 @@ namespace Raycast.Engine
 		{
 			Map = map;
 			Rays = new CastedRay[Constants.SCREEN_WIDTH + 1];
+			for (int i = 0; i <= Constants.SCREEN_WIDTH; i++) {
+				Rays[i] = new CastedRay();
+			}
 		}
 
 		public CastedRay CastRayForPixel(int pixelNumber, Vector2 startPoint, 
@@ -33,10 +36,6 @@ namespace Raycast.Engine
 			}
 			else
 			{
-				if (Rays [pixelNumber] == null) {
-					Rays[pixelNumber] = new CastedRay();
-				}
-
 				var ray = Rays[pixelNumber];
 				ray.PixelOnScreen = pixelNumber;
 				ray.HitLocation = currentLocation;
